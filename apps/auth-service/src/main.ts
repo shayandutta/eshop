@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { errorMiddlware } from '../../../packages/error-handler/error-middleware';
+import { errorMiddleware } from '../../../packages/error-handler/error-middleware';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
   res.send({ message: 'Hello Auth Service API' });
 });
 
-app.use(errorMiddlware);
+app.use(errorMiddleware);
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 6001;
 const server = app.listen(PORT, () => {

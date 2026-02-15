@@ -28,12 +28,24 @@ export class ValidationError extends AppError {
 }
 
 //authentication error
+
+// AppError needs: message, statusCode, isOperational, details
+//  --->   constructor(message:string, statusCode:number, isOperational:boolean, details?:any)
+
+// AuthenticationError only lets the caller choose message and details.
+// It decides statusCode and isOperational itself.
 export class AuthenticationError extends AppError {
-    constructor(message:string = "Authentication error", details?:any){
+    constructor(message: string = "Authentication error", details?: any) {
+        // ↑ Caller only passes these two (or nothing, using defaults)
+
         super(message, 401, true, details);
+        //     ↑      ↑    ↑    ↑
+        //     |      |    |    passed through from caller
+        //     |      |    fixed: "this is always 401"
+        //     |      fixed: "auth errors are always operational"
+        //     from caller (or default)
     }
 }
-
 
 //forbidden error
 export class ForbiddenError extends AppError {
@@ -45,7 +57,7 @@ export class ForbiddenError extends AppError {
 //Database error
 export class DatabaseError extends AppError {
     constructor(message:string = "Database error", details?:any){
-        super(message, 500, true, details);
+        super(message, 500, false, details);
     }
 }
 
@@ -55,3 +67,7 @@ export class RateLimitError extends AppError {
         super(message, 429, true, details);
     }
 }
+
+
+
+
