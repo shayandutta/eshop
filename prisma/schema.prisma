@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "mongodb"
+  // url = env("DATABASE_URL")
+}
+
+model images {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  file_id String
+  url String
+  userId String? @db.ObjectId @unique
+  users users?@relation(fields: [userId], references: [id]) //one to one relation with users. This is the foreign key. users users?,,,, -> means the field users in the images table is a relation to the users table.
+}
+
+model users {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  email String @unique
+  password String?  //optional because we are using social login also
+  following String[]
+  avatar images? //one to one relation with images. This is the foreign key. images images?,,,, -> means the field avatar in the users table is a relation to the images table.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
