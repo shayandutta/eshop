@@ -4,8 +4,6 @@ import { sendOtp, verifyOtp } from '../utils/auth.helper';
 import { userRepository } from '../repositories';
 import jwt from 'jsonwebtoken';
 
-
-
 const authinitiateRegistrationService =
   /** Initiate registration: check user doesn't exist, send OTP. Middleware handles validation & OTP restrictions. */
   async (name: string, email: string, _password: string) => {
@@ -16,8 +14,6 @@ const authinitiateRegistrationService =
     await sendOtp(name, email, 'user-activation-mail');
     return { message: 'OTP sent to your email, please verify your account' };
   };
-
-
 
 /** Complete registration: verify OTP, hash password, create user. */
 const completeRegistration = async (

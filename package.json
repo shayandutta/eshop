@@ -4,12 +4,14 @@
   "license": "MIT",
   "scripts": {
     "dev": "nx run-many --target=serve --all --configuration=development",
-    "dev:watch": "nx run-many -t build -p auth-service,api-gateway && concurrently -n auth,gateway -c blue,green \"nx run auth-service:build --watch\" \"nx run api-gateway:build --watch\" \"nodemon --watch apps/auth-service/dist --delay 1 -e js --exec 'PORT=6001 node -r tsconfig-paths/register -r ts-node/register apps/auth-service/dist/main.js'\" \"nodemon --watch apps/api-gateway/dist --delay 1 -e js --exec 'PORT=8080 node apps/api-gateway/dist/main.js'\""
+    "dev:watch": "nx run-many -t build -p auth-service,api-gateway && concurrently -n auth,gateway -c blue,green \"nx run auth-service:build --watch\" \"nx run api-gateway:build --watch\" \"nodemon --watch apps/auth-service/dist --delay 1 -e js --exec 'PORT=6001 node -r tsconfig-paths/register -r ts-node/register apps/auth-service/dist/main.js'\" \"nodemon --watch apps/api-gateway/dist --delay 1 -e js --exec 'PORT=8080 node apps/api-gateway/dist/main.js'\"",
+    "auth-docs" : "node apps/auth-service/src/swagger.js"
   },
   "private": true,
   "dependencies": {
     "@prisma/client": "^6.15.0",
     "axios": "^1.13.5",
+    "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
@@ -18,6 +20,7 @@
     "express-http-proxy": "^2.1.2",
     "express-rate-limit": "^8.2.1",
     "ioredis": "^5.9.3",
+    "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
     "nodemailer": "^8.0.1",
     "prisma": "^6.15.0",
@@ -45,6 +48,7 @@
     "@types/express": "^4.17.21",
     "@types/express-http-proxy": "^1.6.7",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "20.19.9",
     "@types/nodemailer": "^7.0.10",

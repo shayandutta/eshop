@@ -35,5 +35,4 @@ authRouter.post(
   authMiddleware.validateResetPasswordBody,
   authController.resetUserPassword,
 );
-
 export default authRouter;

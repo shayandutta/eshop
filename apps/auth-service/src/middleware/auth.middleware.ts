@@ -44,12 +44,12 @@ const validateResetPasswordBody = (
   _res: Response,
   next: NextFunction
 ) => {
-  const {email, otp, newPassword} = req.body;
-  if(!email || !otp || !newPassword){
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) {
     return next(new ValidationError('Missing required fields for reset password'));
   }
   next();
-}
+};
 
 
 /** Validate verify body (email, otp, password, name). */
