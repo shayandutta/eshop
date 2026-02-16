@@ -3,11 +3,11 @@
  * This is only a minimal backend to get started.
  */
 
-import express from 'express';
+import express, { NextFunction, Response } from 'express';
 import cors from 'cors';
 import proxy from 'express-http-proxy';
 import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -33,7 +33,7 @@ const limiter = rateLimit({
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: any) => req.ip, //rate limiting for each IP address
+  keyGenerator: (req: any) => (req.user ? String(req.user) : ipKeyGenerator(req.ip ?? '', 56)),
 });
 
 app.use(limiter);
@@ -42,8 +42,29 @@ app.get('/', (req, res) => {
   res.send({ message: 'Welcome to gateway!' });
 });
 
-//connecting auth service
-app.use('/auth', proxy('http://localhost:6001'));
+// Connect auth service: /auth/* -> auth-service (strip /auth prefix). Handle connection errors.
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:6001';
+app.use(
+  '/auth',
+  proxy(AUTH_SERVICE_URL, {
+    proxyReqPathResolver: (req) => req.url?.replace(/^\/auth/, '') || '/',
+    proxyErrorHandler: (err: any, res: Response, next: NextFunction) => {
+      const isConnectionError =
+        err?.code === 'ECONNREFUSED' ||
+        err?.code === 'ECONNRESET' ||
+        err?.name === 'AggregateError' ||
+        (Array.isArray((err as any)?.errors) && (err as any).errors.some((e: any) => e?.code === 'ECONNREFUSED'));
+      if (isConnectionError) {
+        res.status(503).json({
+          error: 'Auth service unavailable',
+          message: 'The auth service is not running or not reachable. Ensure it is listening on port 6001.',
+        });
+        return;
+      }
+      next(err);
+    },
+  })
+);
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {
