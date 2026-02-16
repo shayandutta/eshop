@@ -3,7 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
-import express, { NextFunction, Response } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import proxy from 'express-http-proxy';
 import morgan from 'morgan';
@@ -38,33 +38,12 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-app.get('/', (req, res) => {
+app.get('/api/health', (req:Request, res:Response) => {
   res.send({ message: 'Welcome to gateway!' });
 });
 
 // Connect auth service: /auth/* -> auth-service (strip /auth prefix). Handle connection errors.
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:6001';
-app.use(
-  '/auth',
-  proxy(AUTH_SERVICE_URL, {
-    proxyReqPathResolver: (req) => req.url?.replace(/^\/auth/, '') || '/',
-    proxyErrorHandler: (err: any, res: Response, next: NextFunction) => {
-      const isConnectionError =
-        err?.code === 'ECONNREFUSED' ||
-        err?.code === 'ECONNRESET' ||
-        err?.name === 'AggregateError' ||
-        (Array.isArray((err as any)?.errors) && (err as any).errors.some((e: any) => e?.code === 'ECONNREFUSED'));
-      if (isConnectionError) {
-        res.status(503).json({
-          error: 'Auth service unavailable',
-          message: 'The auth service is not running or not reachable. Ensure it is listening on port 6001.',
-        });
-        return;
-      }
-      next(err);
-    },
-  })
-);
+app.use('/auth', proxy('http://localhost:6001'));
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {
