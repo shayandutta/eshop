@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.send({ message: 'Hello Auth Service API' });
 });
 
