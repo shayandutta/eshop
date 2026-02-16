@@ -1,5 +1,7 @@
 # Eshop project – setup & error-handler notes
 
+> **See also:** [00-START-HERE](00-START-HERE.md) for the full step-by-step guide, and [01-PROJECT-SETUP](01-PROJECT-SETUP.md) through [09-CONFIGURATION](09-CONFIGURATION.md) for detailed docs.
+
 ---
 
 ## Part 1: Project scaffolding & setup (step-by-step)
@@ -93,11 +95,14 @@ npm run dev
 | Issue | Cause | Fix |
 |-------|--------|-----|
 | Only **1 serve task** (auth-service) | api-gateway not discovered or no serve target | Ensure api-gateway has `serve` in `package.json` under `"nx": { "targets": { "serve": { ... } } }` (or project.json). Nx discovers projects from config. |
-| **auth-service build fails** (ENOENT) | Webpack expects `apps/auth-service/src/assets`; folder missing | Create `apps/auth-service/src/assets/` and e.g. `apps/auth-service/src/assets/.gitkeep` so the path exists. |
+| **auth-service build fails** (ENOENT) | Assets folder or email template path missing | Ensure `apps/auth-service/src/assets/` exists. For email templates, path must use `apps/auth-service` (see [06-EMAIL](06-EMAIL.md)). |
 | **api-gateway build fails** (TS6133) | Unused imports (`swaggerUi`, `axios`) with `noUnusedLocals` | Remove unused imports or use them. |
 | **api-gateway runs build:production** | `run-many --target=serve --all` doesn’t force development; build default can be production | Use `"dev": "nx run-many --target=serve --all --configuration=development"` so both apps serve (and build) in development. |
 | **Cannot GET /api** on 8080 | No `/api` route on api-gateway | Use existing route (e.g. `/gateway-health`) or add `app.get('/api', ...)`. |
 | **CI runs without you configuring it** | Nx scaffold adds `.github/workflows/ci.yml` | Delete or edit the file if you don’t want CI; otherwise it runs `lint`, `test`, `build`, `typecheck` on push/PR. |
+| **Prisma DbNull** | Prisma bundled with esbuild | Add `@packages/libs/prisma` to esbuild `external` (see [02-BUILD-SYSTEM](02-BUILD-SYSTEM.md)). |
+| **ioredis Unhandled error event** | Redis connection fails | Add `redis.on('error', ...)` in packages/libs/redis (see [07-REDIS](07-REDIS.md)). |
+| **Email: No recipients defined** | Wrong sendOtp arg order | Use `sendOtp(name, email, template)` (see [06-EMAIL](06-EMAIL.md)). |
 | **Serve shows “Waiting for task...”** | Nx TUI default message | Normal; task is running. Use keys 1/2 or Enter to see logs. |
 
 ---
