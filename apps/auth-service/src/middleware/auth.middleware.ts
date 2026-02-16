@@ -36,6 +36,14 @@ const validateVerifyBody = (
   next();
 };
 
+const validateLoginBody = (req: Request, _res: Response, next: NextFunction) => {
+  const {email, password} = req.body;
+  if(!email || !password){
+    return next(new ValidationError('Missing required fields for login'));
+  }
+  next();
+}
+
 /** Check if email is restricted (lock, spam, cooldown). Calls next(error) if restricted. */
 const checkOtpRestrictions = async (
   req: Request,
@@ -93,4 +101,5 @@ export default {
   validateVerifyBody,
   checkOtpRestrictions,
   trackOtpRequests,
+  validateLoginBody,
 }

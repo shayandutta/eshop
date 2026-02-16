@@ -16,5 +16,5 @@ authRouter.post(
   authMiddleware.validateVerifyBody,
   authController.verifyUser,
 );
-authRouter.post('/login', authController.loginUser);
+authRouter.post('/login', authMiddleware.validateLoginBody, authController.loginUser);
 export default authRouter;
