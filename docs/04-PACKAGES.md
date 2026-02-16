@@ -46,6 +46,8 @@ export class AppError extends Error {
 - 4-arg Express error handler: `(err, req, res, next)`
 - If `err instanceof AppError`: `res.status(err.statusCode).json({ message, statusCode, details })`
 - Otherwise: `res.status(500).json({ message: "Internal server error", isOperational: false })`
+- Must be registered **after** routes: `app.use(errorMiddleware)`
+- Receives errors when controllers call `next(error)` (see [PROJECT_AND_ERROR_HANDLER_NOTES](PROJECT_AND_ERROR_HANDLER_NOTES.md) Part 3)
 
 ### Usage
 

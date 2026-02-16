@@ -68,5 +68,12 @@ export const sendOtp = async (name: string, email: string, template:string) => {
     //save otp against email in redis db
     await redis.set(`otp:${email}`, otp, 'EX', 300) //EX means expire the key after 300 seconds
     await redis.set(`otp_cooldown:${email}`, 'true', 'EX', 60) //cannot send another otp for 60 seconds, i.e., expiry time of 60 seconds
+};
 
-}
+export const verifyOtp = async (email: string, otp: string): Promise<void> => {
+  const storedOtp = await redis.get(`otp:${email}`);
+  if (!storedOtp || storedOtp !== otp) {
+    throw new ValidationError('Invalid or expired OTP');
+  }
+  await redis.del(`otp:${email}`);
+};

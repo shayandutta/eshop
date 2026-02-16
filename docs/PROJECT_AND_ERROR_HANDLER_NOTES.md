@@ -189,3 +189,77 @@ if (!token) throw new AuthenticationError('Invalid or expired token');
 ```
 
 Middleware then turns these into consistent JSON responses with the correct status code.
+
+---
+
+## Part 3: Error-handling practices
+
+### Controller catch block: use `return next(error)`
+
+In the controller’s catch block, forward errors to the error middleware:
+
+```ts
+try {
+  const result = await authService.doSomething();
+  res.json(result);
+} catch (error) {
+  return next(error);
+}
+```
+
+- `return` avoids running more controller code and prevents double responses.
+- `next(error)` sends the error to the 4-arg error middleware, which formats and sends the response.
+
+---
+
+### When a condition fails inside the try block
+
+| Layer        | Use                     | Reason |
+|-------------|-------------------------|--------|
+| **Service** | `throw new ValidationError(...)` | Services have no `next`; they signal errors by throwing |
+| **Controller** | `throw new ValidationError(...)` | The catch block receives it and calls `next(error)` |
+| **Middleware** | `return next(new ValidationError(...))` | Middleware has `next`; call it directly and stop further logic |
+
+**Controller example:**
+```ts
+try {
+  if (!req.params.id) throw new ValidationError('ID required');
+  const user = await authService.getUser(req.params.id);
+  if (!user) throw new NotFoundError('User not found');
+  res.json(user);
+} catch (error) {
+  return next(error);
+}
+```
+
+**Middleware example:**
+```ts
+if (!emailRegex.test(email)) {
+  return next(new ValidationError('Invalid email address'));
+}
+next();
+```
+
+---
+
+### How `next(error)` reaches the error middleware
+
+Express distinguishes error middleware by its **arity** (number of parameters):
+
+- Regular middleware: `(req, res, next)` — 3 args
+- Error middleware: `(err, req, res, next)` — 4 args
+
+When you call `next(error)`:
+
+1. Express treats it as an error (because an argument was passed).
+2. It skips the rest of the normal middleware chain.
+3. It finds the next 4-arg handler and invokes it with `(err, req, res, next)`.
+
+**Middleware chain (auth-service):**
+```
+cors → express.json → cookieParser
+  → routes (e.g. POST /api/register)
+  → app.use(errorMiddleware)   ← registered last; 4-arg handler
+```
+
+The error middleware must be registered **after** all routes. Any `next(error)` from a route or earlier middleware will then reach it.

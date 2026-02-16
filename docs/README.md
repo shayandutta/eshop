@@ -20,4 +20,4 @@
 | 07 | [07-REDIS](07-REDIS.md) | ioredis, Upstash |
 | 08 | [08-API-GATEWAY](08-API-GATEWAY.md) | Gateway, proxy, rate limiting |
 | 09 | [09-CONFIGURATION](09-CONFIGURATION.md) | .env, project.json, config changes |
-| — | [PROJECT_AND_ERROR_HANDLER_NOTES](PROJECT_AND_ERROR_HANDLER_NOTES.md) | Setup history, error-handler, troubleshooting |
+| — | [PROJECT_AND_ERROR_HANDLER_NOTES](PROJECT_AND_ERROR_HANDLER_NOTES.md) | Setup history, error-handler, error-handling practices, troubleshooting |
