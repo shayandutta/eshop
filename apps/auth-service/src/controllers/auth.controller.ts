@@ -1,29 +1,68 @@
-import { NextFunction, Request, Response } from "express";
-import { checkOtpRestrictions, sendOtp, trackOtpRequests, validateRegistrationData } from "../utils/auth.helper";
-import prisma from "@packages/libs/prisma";
-import { ValidationError } from "@packages/error-handler";
-//register a user
-export const userRegistration = async(req:Request, res:Response, next:NextFunction) => {
-    try{
-        validateRegistrationData(req.body, "user");
+import { NextFunction, Request, Response } from 'express';
+import { authService } from '../services';
+import { setCookie } from '../utils/cookies/setCookie';
 
-        const {name, email} = req.body;
-        const existinguser = await prisma.users.findUnique({
-            where: {
-                email: email
-            }
-        })
-        if(existinguser){
-            return next (new ValidationError("User already exists with this email"))
-        }
-    
-        await checkOtpRestrictions(email, next);
-        await trackOtpRequests(email, next);
-        await sendOtp(name, email, "user-activation-mail");
-        res.status(200).json({
-            message: "OTP sent to your email, please verify your account",
-        })
-    } catch(error){
-        return next(error);
-    }
+const userRegistration = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { name, email, password } = req.body;
+    const result = await authService.authinitiateRegistrationService(name, email, password);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp, password, name } = req.body;
+    const user = await authService.completeRegistration(
+      email,
+      otp,
+      password,
+      name
+    );
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const loginUser = async(req: Request, res: Response, next: NextFunction) => {
+  try{
+    const {email, password} = req.body;
+    const response = await authService.loginUser(email, password);
+    setCookie(res, 'accessToken', response.accessToken);
+    setCookie(res, 'refreshToken', response.refreshToken);
+    res
+    .status(200)
+    .json({
+      success: true,
+      message: "User logged in successfully",
+      user: response.id, email: response.email, name: response.name,
+    })
+  }catch(error){
+    next(error);
+  }
+}
+
+
+export default {
+  userRegistration,
+  verifyUser,
+  loginUser
 }
