@@ -23,7 +23,7 @@ const Login = () => {
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = (data: FormData) => {
+  const onFormSubmit = (data: FormData) => {
     
   };
 
@@ -55,7 +55,7 @@ const Login = () => {
           </div>
 
           {/* FORM */}
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onFormSubmit)}>
             <label className="block text-gray-700 mb-1">Email</label>
             <input
               type="email"
@@ -75,7 +75,7 @@ const Login = () => {
               </p>
             )}
 
-            <label className="block text-gray-700 mt-4 mb-1">Password</label>
+            <label className="block text-gray-700 mt-2 mb-1">Password</label>
             <div className="relative">
               <input
                 type={passwordVisible ? 'text' : 'password'}
