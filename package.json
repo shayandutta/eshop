@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "nx run-many --target=serve --all --configuration=development",
     "dev:watch": "nx run-many -t build -p auth-service,api-gateway && concurrently -n auth,gateway -c blue,green \"nx run auth-service:build --watch\" \"nx run api-gateway:build --watch\" \"nodemon --watch apps/auth-service/dist --delay 1 -e js --exec 'PORT=6001 node -r tsconfig-paths/register -r ts-node/register apps/auth-service/dist/main.js'\" \"nodemon --watch apps/api-gateway/dist --delay 1 -e js --exec 'PORT=8080 node apps/api-gateway/dist/main.js'\"",
-    "auth-docs": "node apps/auth-service/src/swagger.js"
+    "auth-docs": "node apps/auth-service/src/swagger.js",
+    "user-ui": "nx run user-ui:dev"
   },
   "private": true,
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
@@ -21,12 +23,14 @@
     "express-rate-limit": "^8.2.1",
     "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.570.0",
     "morgan": "^1.10.1",
     "next": "~16.0.1",
     "nodemailer": "^8.0.1",
     "prisma": "^6.15.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.71.1",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
   },
