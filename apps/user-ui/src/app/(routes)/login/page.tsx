@@ -75,7 +75,7 @@ const Login = () => {
               </p>
             )}
 
-            <label className="block text-gray-700 mt-4 mb-1">Password</label>
+            <label className="block text-gray-700 mt-2 mb-1">Password</label>
             <div className="relative">
               <input
                 type={passwordVisible ? 'text' : 'password'}
