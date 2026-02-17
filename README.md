@@ -1,6 +1,6 @@
 # Eshop
 
-Nx monorepo for the Eshop backend: API gateway, auth service, shared packages, and Prisma (MongoDB).
+Nx monorepo for the Eshop fullstack project: API gateway, auth service,  user-ui, admin-ui, vendor-ui, shared packages, and Prisma (MongoDB).
 
 ---
 
