@@ -12,6 +12,13 @@ const userRepository = {
       data,
     });
   },
+
+  update: (id: string, data: { password: string }) => {
+    return prisma.users.update({
+      where: { id },
+      data,
+    });
+  },
 };
 
 export default userRepository;

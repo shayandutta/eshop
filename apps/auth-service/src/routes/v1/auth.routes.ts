@@ -16,5 +16,23 @@ authRouter.post(
   authMiddleware.validateVerifyBody,
   authController.verifyUser,
 );
-authRouter.post('/login', authMiddleware.validateLoginBody, authController.loginUser);
+authRouter.post(
+  '/login',
+  authMiddleware.validateLoginBody,
+  authController.loginUser,
+);
+
+authRouter.post(
+  '/forgot-password',
+  authMiddleware.validateForgotPasswordBody,
+  authMiddleware.checkOtpRestrictions,
+  authMiddleware.trackOtpRequests,
+  authController.userForgotPassword,
+);
+
+authRouter.post(
+  '/reset-password',
+  authMiddleware.validateResetPasswordBody,
+  authController.resetUserPassword,
+);
 export default authRouter;

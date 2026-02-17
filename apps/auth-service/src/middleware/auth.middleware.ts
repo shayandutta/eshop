@@ -23,6 +23,35 @@ const validateRegistration = (
   next();
 };
 
+
+const validateForgotPasswordBody = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  const { email } = req.body;
+  if (!email) {
+    return next(new ValidationError('Email is required for forgot password'));
+  }
+  if (!emailRegex.test(email)) {
+    return next(new ValidationError('Invalid email address'));
+  }
+  next();
+};
+
+const validateResetPasswordBody = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  const { email, otp, newPassword } = req.body;
+  if (!email || !otp || !newPassword) {
+    return next(new ValidationError('Missing required fields for reset password'));
+  }
+  next();
+};
+
+
 /** Validate verify body (email, otp, password, name). */
 const validateVerifyBody = (
   req: Request,
@@ -99,7 +128,9 @@ const trackOtpRequests = async (
 export default {
   validateRegistration,
   validateVerifyBody,
+  validateForgotPasswordBody,
   checkOtpRestrictions,
   trackOtpRequests,
   validateLoginBody,
-}
+  validateResetPasswordBody,
+};

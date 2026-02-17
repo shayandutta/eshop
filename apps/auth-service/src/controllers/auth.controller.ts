@@ -60,9 +60,44 @@ const loginUser = async(req: Request, res: Response, next: NextFunction) => {
   }
 }
 
+const userForgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email } = req.body;
+    const result = await authService.forgotPassword(email);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetUserPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const result = await authService.resetUserPassword(email, otp, newPassword);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export default {
   userRegistration,
   verifyUser,
-  loginUser
-}
+  loginUser,
+  userForgotPassword,
+  resetUserPassword,
+};
