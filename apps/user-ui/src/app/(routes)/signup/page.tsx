@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react';
 import { set, useForm } from 'react-hook-form';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 type FormData = {
   name: string;
@@ -16,9 +16,7 @@ type FormData = {
 
 const SignUp = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
   const [showOtp, setShowOtp] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [canResend, setCanResend] = useState(true);
   const [timer, setTimer] = useState(60);
   const [otp, setOtp] = useState(['', '', '', '']);
@@ -55,13 +53,27 @@ const SignUp = () => {
       return response.data;
     },
     onSuccess: (_, formData) => {
-      setUserData(formData);
+      setUserData(formData); // Store form data to use after OTP verification
       setShowOtp(true);
       setCanResend(false);
       setTimer(60);
       startResendTimer();
     },
   });
+
+  const verifyOtpMutation = useMutation({
+    mutationFn: async () => {
+      if(!userData) return;
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/auth/api/v1/verify`, {
+        ...userData,
+        otp: otp.join(''),
+      })
+      return response.data;
+    },
+    onSuccess: () => {
+      router.push('/login');  //after verification redirect to login page
+    }
+  })
 
   const onSubmit = (data: FormData) => {
     // console.log('Form Data:', data);
@@ -188,16 +200,18 @@ const SignUp = () => {
               </div>
               <button
                 type="submit"
+                disabled={signupMutation.isPending}
                 className="w-full bg-black text-white py-2 rounded-lg cursor-pointer mb-2 mt-4"
               >
-                Submit
+                {signupMutation.isPending ? "Signing Up..." : "Sign Up"}  {/*  DIFINING THE LOADING STATE OF THE SIGNUP BUTTON BASED ON THE MUTATION STATUS */}
               </button>
-
-              {serverError && (
-                <p className="text-red-500 text-sm mt-2 text-center">
-                  {serverError}
-                </p>
-              )}
+                {signupMutation?.isError && 
+                signupMutation.error instanceof AxiosError && (
+                  <p className='text-red-500 text-sm mt-2'>
+                    {signupMutation.error.response?.data?.message || signupMutation.error.message || "An error occurred during signup"}
+                  </p>
+                )
+              }
             </form>
           ) : (
             <div>
@@ -220,9 +234,19 @@ const SignUp = () => {
                   />
                 ))}
               </div>
-              <button className="w-full mt-4 text-lg cursor-pointer bg-blue-500 text-white py-2 rounded-lg">
-                Verify OTP
+              <button 
+              disabled = {verifyOtpMutation.isPending}
+              onClick={() => verifyOtpMutation.mutate()}
+              className="w-full mt-4 text-lg cursor-pointer bg-blue-500 text-white py-2 rounded-lg">
+                {verifyOtpMutation.isPending ? "Verifying..." : "Verify OTP"}
               </button>
+               {signupMutation?.isError && 
+                signupMutation.error instanceof AxiosError && (
+                  <p className='text-red-500 text-sm mt-2'>
+                    {signupMutation.error.response?.data?.message || signupMutation.error.message || "An error occurred during signup"}
+                  </p>
+                )
+              }
               <p className="text-center text-sm mt-4">
                 {canResend ? (
                   <button
@@ -235,6 +259,14 @@ const SignUp = () => {
                   `Resend OTP in ${timer}s`
                 )}
               </p>
+              {
+                verifyOtpMutation?.isError && 
+                verifyOtpMutation.error instanceof AxiosError && (
+                  <p className='text-red-500 text-sm mt-2'>
+                    {verifyOtpMutation.error.response?.data?.message || verifyOtpMutation.error.message || "An error occurred while verifying OTP"}
+                  </p>
+                )
+              }
             </div>
           )}
         </div>
