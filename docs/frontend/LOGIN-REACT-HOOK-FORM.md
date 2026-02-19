@@ -1,89 +1,141 @@
-# Login Page — React Hook Form Explanation
+````markdown
+# Login Page — Line-by-line Annotated Code Explanations (Beginner Friendly)
 
-This document explains the React Hook Form usage in the login page file:
+Source: [apps/user-ui/src/app/(routes)/login/page.tsx](<apps/user-ui/src/app/(routes)/login/page.tsx#L1-L200>)
 
-- Source: [apps/user-ui/src/app/(routes)/login/page.tsx](apps/user-ui/src/app/(routes)/login/page.tsx#L1-L200)
+This document copies important blocks from the real source and explains each line in detail so you can understand how the form, validation and login request work.
 
-Overview
-- The page uses `react-hook-form` to manage form state and validation.
-- Auxiliary UI state uses React `useState` for `passwordVisible`, `serverError`, and `rememberMe`.
-- The `onSubmit` handler is currently a placeholder; it should call your auth API and handle navigation and server errors.
+---
 
-Line-by-line (code snippets and explanation)
+1. Imports, types and component start
 
-1. 'use client';
-   - Enables React client-side rendering for this Next.js app route (required for hooks like useState/useForm).
+```tsx
+'use client';
+import GoogleButton from '@/shared/components/google-button';
+import { useMutation } from '@tanstack/react-query';
+import axios, { AxiosError } from 'axios';
+import { Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
-2. import GoogleButton ... import { useForm } from 'react-hook-form';
-   - Imports components and the `useForm` hook which provides form helpers (`register`, `handleSubmit`, `formState`, etc.).
+type FormData = {
+  email: string;
+  password: string;
+};
 
-3. type FormData = { email: string; password: string; };
-   - TypeScript type describing the form values. Passing this generic to `useForm<FormData>()` gives typed form values and helps with autocompletion.
+const Login = () => {
+```
+````
 
-4. const Login = () => {
-   - The functional component for the login page.
+Explanation (line-by-line):
 
-5.   const [passwordVisible, setPasswordVisible] = useState(false);
-   - Local UI state to toggle password input visibility.
+- `'use client';` — mark this component as client-side in Next.js so hooks run in the browser.
+- `GoogleButton` — shared component for social sign-in.
+- `useMutation` — react-query hook to perform and manage POST requests.
+- `axios, AxiosError` — HTTP client and error type for typed error handling.
+- `Eye, EyeOff` — icons used to toggle password visibility.
+- `Link` and `useRouter` — Next.js helpers for navigation.
+- `React, useState` — React and local state hook.
+- `useForm` — react-hook-form's main hook to register inputs and validate.
+- `type FormData` — TypeScript type describing the form shape; passed to `useForm<FormData>()` for typing.
 
-6.   const [serverError, setServerError] = useState<string | null>(null);
-   - Holds any error string returned from the server during submission.
+2. State and form hookup
 
-7.   const [rememberMe, setRememberMe] = useState(false);
-   - Tracks the checkbox state; this is not stored in react-hook-form and is handled separately as a regular piece of state.
+```tsx
+const [passwordVisible, setPasswordVisible] = useState(false);
+const [serverError, setServerError] = useState<string | null>(null);
+const [rememberMe, setRememberMe] = useState(false);
+const router = useRouter();
 
-8.   const router = useRouter();
-   - Next.js `useRouter` for navigation after successful login (currently unused, but intended for redirecting).
+const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm<FormData>();
+```
 
-9.   const { register, handleSubmit, formState: { errors }, } = useForm<FormData>();
-   - `useForm<FormData>()` returns several helpers; destructured here:
-     - `register` — function that connects inputs to the RHF internal state and validation rules.
-     - `handleSubmit` — wrapper that validates the form and passes typed data to `onSubmit` when valid.
-     - `formState.errors` — an object containing validation errors for each field (if any).
+Explanation:
 
-10.  const onSubmit = (data: FormData) => { }
-   - Submission callback passed to `handleSubmit`. `data` will be typed as `FormData`. Implement API call, error handling and redirect here.
+- `passwordVisible` controls whether the password input shows plain text.
+- `serverError` stores a string returned by the backend to display to the user.
+- `rememberMe` tracks that checkbox locally (not part of RHF here).
+- `router` is used to redirect after success.
+- `register` attaches inputs to RHF, `handleSubmit` validates and calls your submit handler, `errors` contains validation issues.
 
-FORM FIELDS
+3. Login mutation (network call)
 
-Email input block:
-- `<input type="email" ... {...register('email', { required: 'Email is required', pattern: { value: /.../, message: 'Invalid email address' } })} />`
-  - `register('email', rules)` does three main things:
-    1. Registers the input under the `email` key in the form state.
-    2. Attaches validation rules: `required` and a `pattern` regex for basic email validation.
-    3. Returns `ref`, `onChange`, `onBlur` props (spread into the input) so RHF can manage value and validation.
-  - If validation fails, `errors.email` will be set. The code displays the message via `{errors.email && <p>{String(errors.email.message)}</p>}`.
+```tsx
+const loginMutation = useMutation({
+  mutationFn: async (data: FormData) => {
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_SERVER_URI}/auth/api/v1/login`, data, { withCredentials: true });
+    return response.data;
+  },
+  onSuccess: (data) => {
+    setServerError(null);
+    router.push('/');
+  },
+  onError: (error: AxiosError) => {
+    const errorMessage = (error.response?.data as { message?: string })?.message || 'Invalid credentials';
+    setServerError(errorMessage);
+  },
+});
+```
 
-Password input block:
-- The input toggles `type` between `password` and `text` using `passwordVisible`.
-- It's registered with `register('password', { required: 'password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })`.
-- `minLength` validation runs on submit/blurs and sets `errors.password` if it fails.
-- A separate button toggles visibility using `setPasswordVisible(!passwordVisible)`.
+Explanation:
 
-Checkbox (Remember Me):
-- Implemented with standard React state (`rememberMe`) rather than RHF. Either approach is fine; if you want RHF to manage it, register it (e.g., `register('rememberMe')`) and include it in your `FormData` type.
+- `useMutation` centralizes the async POST and gives lifecycle hooks (`onSuccess`, `onError`).
+- `withCredentials: true` ensures cookies (httpOnly) are sent/received across the gateway; important for session-based auth.
+- `onSuccess` clears errors and redirects home.
+- `onError` extracts a friendly message from `error.response?.data` and saves it to `serverError`.
 
-Form submit button and server error display:
-- `<form onSubmit={handleSubmit(onFormSubmit)}>` wraps the form. `handleSubmit` validates all registered fields and only calls `onSubmit` with valid `data`.
-- `onFormSubmit` should:
-  1. Clear `serverError` (`setServerError(null)`).
-  2. Call your auth API (e.g., `fetch`/`axios`) with `data` and optionally `rememberMe`.
-  3. On success, redirect using `router.push('/some-route')`.
-  4. On failure, set a useful `serverError` message via `setServerError(...)`.
-- The component displays `serverError` under the submit button when present.
+4. onFormSubmit and form wiring
 
-Notes, suggestions, and common patterns
-- Resetting the form: use `const { reset } = useForm()` if you need to clear fields after success: `reset()`.
-- Setting errors from server: use RHF's `setError` (from `useForm`) to attach server-side errors to specific fields:
-  - Example: `setError('email', { type: 'server', message: 'Email not found' })`.
-- Watching values: use `watch` from `useForm` for reactive logic based on field values.
-- Controlled components / custom inputs: RHF's `Controller` can be used for third-party controlled components.
-- Accessibility: ensure `aria-invalid` and `aria-describedby` map to the error element IDs for better a11y.
+```tsx
+const onFormSubmit = (data: FormData) => {
+  loginMutation.mutate(data);
+};
+```
 
-Implementation checklist (to finish `onSubmit`):
-1. Clear previous errors: `setServerError(null)`.
-2. Call auth API with `data` and `rememberMe`.
-3. On success: store token/session, then `router.push('/')`.
-4. On known field errors: use `setError('email', { message: '...' })`.
-5. On unknown errors: `setServerError('Unexpected error...')`.
+Explanation:
 
+- `handleSubmit(onFormSubmit)` (in the JSX) will call this with validated `data` — typed as `FormData`.
+- `loginMutation.mutate(data)` triggers the network call; while pending `loginMutation.isPending` can be used to disable the button.
+
+5. Form inputs (key lines)
+
+```tsx
+<form onSubmit={handleSubmit(onFormSubmit)}>
+  <input type="email" {...register('email', { required: 'Email is required', pattern: { value: /^[a-zA-Z0-9._%-+]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, message: 'Invalid email address' } })} />
+  {errors.email && <p>{String(errors.email.message)}</p>}
+
+  <input type={passwordVisible ? 'text' : 'password'} {...register('password', { required: 'password is required', minLength: { value: 6, message: 'Password must be at least 6 characters' } })} />
+  <button type="button" onClick={() => setPasswordVisible(!passwordVisible)}>
+    {passwordVisible ? <Eye /> : <EyeOff />}
+  </button>
+
+  <input type="checkbox" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
+
+  <button type="submit" disabled={loginMutation.isPending}>
+    {loginMutation.isPending ? 'Logging in...' : 'Login'}
+  </button>
+
+  {serverError && <p>{serverError}</p>}
+</form>
+```
+
+Explanation (high level):
+
+- `register('field', rules)` wires the input to RHF and attaches validation rules. RHF returns refs and handlers which are spread into the input.
+- Validation errors appear in `errors`, and messages are shown to the user.
+- Visibility toggle is a `button` with `type="button"` to avoid submitting the form.
+- `disabled={loginMutation.isPending}` prevents duplicates while awaiting the server.
+
+---
+
+If you want deeper explanations for any single line (e.g., how `withCredentials` works cross-domain, or how to move `rememberMe` into RHF), tell me which line and I'll expand further.
+
+```
+
+```
