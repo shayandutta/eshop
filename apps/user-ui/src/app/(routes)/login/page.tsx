@@ -1,5 +1,7 @@
 'use client';
 import GoogleButton from '@/shared/components/google-button';
+import { useMutation } from '@tanstack/react-query';
+import axios, { AxiosError } from 'axios';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -23,8 +25,28 @@ const Login = () => {
     formState: { errors },
   } = useForm<FormData>();
 
+  const loginMutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/auth/api/v1/login`,
+        data,
+        {withCredentials: true} // include cookies in the request -> else cookie-parser in backend won't be able to read the cookie and thus won't set the user in req.user, causing auth middleware to fail and return 401 unauthorized
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setServerError(null);
+      // Redirect to home page or dashboard after successful login
+      router.push('/');
+    },
+    onError: (error: AxiosError) => {
+      const errorMessage = (error.response?.data as {message?:string})?.message || "Invalid credentials";
+      setServerError(errorMessage);
+    }
+  })
+
   const onFormSubmit = (data: FormData) => {
-    
+    loginMutation.mutate(data);
   };
 
   return (
@@ -118,9 +140,10 @@ const Login = () => {
             </div>
             <button
               type="submit"
+              disabled={loginMutation.isPending}
               className="w-full bg-black text-white py-2 rounded-lg cursor-pointer mb-2"
             >
-              Submit
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </button>
 
             {serverError && (
