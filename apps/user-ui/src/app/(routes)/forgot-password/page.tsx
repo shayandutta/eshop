@@ -1,8 +1,7 @@
 'use client';
-import GoogleButton from '@/shared/components/google-button';
+
 import { useMutation } from '@tanstack/react-query';
 import axios, { AxiosError } from 'axios';
-import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useRef, useState } from 'react';
@@ -177,9 +176,6 @@ const ForgotPassword = () => {
     resetPasswordMutation.mutate({ password });
   };
 
-  const onFormSubmit = (data: FormData) => {
-    console.log(data);
-  };
 
   return (
     <div className="w-full pt-10 pb-20 min-h-[85vh] bg-gray-100">
@@ -313,23 +309,69 @@ const ForgotPassword = () => {
               >
                 {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify OTP'}
               </button>
-                {canResend ? (
-                  <button
-                    onClick={() => requestOtpMutation.mutate(userEmail!)}
-                    className="text-blue-500 cursor-pointer mt-4"
-                  >
-                    Resend OTP
-                  </button>
-                ) : (
-                  <p className="text-center text-sm mt-4">Resend OTP in {timer}s</p>
+              {canResend ? (
+                <button
+                  onClick={() => requestOtpMutation.mutate(userEmail!)}
+                  className="text-blue-500 cursor-pointer mt-4"
+                >
+                  Resend OTP
+                </button>
+              ) : (
+                <p className="text-center text-sm mt-4">
+                  Resend OTP in {timer}s
+                </p>
+              )}
+
+              {serverError && (
+                <div className="text-red-500 text-sm mt-2 text-center">
+                  {serverError}
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 'reset' && (
+            <>
+              <h3 className="text-xl font-semibold text-center mb-4">
+                Reset Password
+              </h3>
+              <form onSubmit={handleSubmit(onSubmitPassword)}>
+                <label className="block text-gray-700 mb-1">New Password</label>
+                <input
+                  type="password"
+                  placeholder="Min. 6 characters"
+                  className="w-full p-2 border border-gray-300 outline-0 !rounded mb-1"
+                  {...register('password', {
+                    required: 'password is required',
+                    minLength: {
+                      value: 6,
+                      message: 'Password must be at least 6 characters',
+                    },
+                  })}
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm">
+                    {String(errors.password.message)}
+                  </p>
                 )}
 
+                <button
+                  type="submit"
+                  disabled={resetPasswordMutation.isPending}
+                  className="w-full bg-black text-white py-2 rounded-lg cursor-pointer mb-2 mt-4"
+                >
+                  {resetPasswordMutation.isPending
+                    ? 'Resetting...'
+                    : 'Reset Password'}
+                </button>
+
                 {serverError && (
-                  <div className="text-red-500 text-sm mt-2 text-center">
+                  <p className="text-red-500 text-sm mt-2 text-center">
                     {serverError}
-                  </div>
+                  </p>
                 )}
-              </div>
+              </form>
+            </>
           )}
         </div>
       </div>
