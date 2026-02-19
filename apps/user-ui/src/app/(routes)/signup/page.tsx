@@ -110,7 +110,11 @@ const SignUp = () => {
     }
   };
 
-  const resendOtp = () => {};
+  const resendOtp = () => {
+    if(userData) {
+      signupMutation.mutate(userData); // Resend OTP using the same user data
+    }
+  };
 
   return (
     <div className="w-full pt-10 pb-20 min-h-[85vh] bg-gray-100">
