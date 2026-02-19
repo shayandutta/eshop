@@ -65,7 +65,7 @@ const ForgotPassword = () => {
   const requestOtpMutation = useMutation({
     mutationFn: async (email: string) => {
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URI}/auth/api/v1/reset-password`,
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/auth/api/v1/forgot-password`,
         { email },
       );
       return response.data;
