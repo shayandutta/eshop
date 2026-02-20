@@ -77,6 +77,23 @@ const userForgotPassword = async (
   }
 };
 
+const verifyUserForgotPasswordOTP = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp } = req.body;
+    const result = await authService.verifyForgotPasswordOTP(email, otp);
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 const resetUserPassword = async (
   req: Request,
   res: Response,
@@ -100,4 +117,5 @@ export default {
   loginUser,
   userForgotPassword,
   resetUserPassword,
+  verifyUserForgotPasswordOTP,
 };
