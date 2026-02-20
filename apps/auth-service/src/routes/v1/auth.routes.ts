@@ -35,4 +35,10 @@ authRouter.post(
   authMiddleware.validateResetPasswordBody,
   authController.resetUserPassword,
 );
+
+authRouter.post(
+  '/verify-forgot-password-otp',
+  authMiddleware.validateVerifyForgotPasswordOTPBody,
+  authController.verifyUserForgotPasswordOTP,
+);
 export default authRouter;
