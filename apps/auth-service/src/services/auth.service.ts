@@ -1,6 +1,6 @@
 import { AuthenticationError, ValidationError } from '@packages/error-handler';
 import bcrypt from 'bcryptjs';
-import { sendOtp, verifyOtp } from '../utils/auth.helper';
+import { sendOtp, verifyOtp, checkOtp } from '../utils/auth.helper';
 import { userRepository } from '../repositories';
 import jwt from 'jsonwebtoken';
 
@@ -40,8 +40,6 @@ const completeRegistration = async (
   };
 };
 
-
-
 const loginUser = async (email: string, password: string) => {
   const user = await userRepository.findByEmail(email);
   if (!user) {
@@ -49,8 +47,6 @@ const loginUser = async (email: string, password: string) => {
       'User not found with this email. Please register first.',
     );
   }
-
-
 
   const isPasswordCorrect = await bcrypt.compare(password, user.password!);
   // console.log(isPasswordCorrect);
@@ -82,8 +78,6 @@ const loginUser = async (email: string, password: string) => {
   };
 };
 
-
-
 const forgotPassword = async (email: string) => {
   const user = await userRepository.findByEmail(email);
   if (!user) {
@@ -93,8 +87,6 @@ const forgotPassword = async (email: string) => {
   await sendOtp(user.name, email, 'user-activation-mail');
   return { message: 'OTP sent to your email, please verify your account' };
 };
-
-
 
 const resetUserPassword = async (
   email: string,
@@ -119,10 +111,23 @@ const resetUserPassword = async (
   return { message: 'Password reset successfully' };
 };
 
+const verifyForgotPasswordOTP = async (email: string, otp: string) => {
+  const user = await userRepository.findByEmail(email);
+  if (!user) {
+    throw new ValidationError('User not found with this email');
+  }
+  // Validate OTP but keep it around so user can submit reset-password next.
+  await checkOtp(email, otp, false);
+  return {
+    message: 'OTP verified successfully, you can now reset your password',
+  };
+};
+
 export default {
   authinitiateRegistrationService,
   completeRegistration,
   loginUser,
   forgotPassword,
   resetUserPassword,
+  verifyForgotPasswordOTP,
 };
