@@ -110,10 +110,29 @@ const ForgotPassword = () => {
   //   },
   // });
 
-const handleVerifyOtp = () => {
-  setServerError(null);
-  setStep('reset');
-}
+  const verifyOtpMutation = useMutation({
+    mutationFn: async () => {
+      if (!userEmail) return;
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_SERVER_URI}/auth/api/v1/verify-forgot-password-otp`,
+        {
+          email: userEmail,
+          otp: otp.join(''),
+        },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      setServerError(null);
+      setStep('reset');
+    },
+    onError: (error: AxiosError) => {
+      const errorMessage =
+        (error.response?.data as { message?: string })?.message ||
+        'Invalid Otp. Try again later.';
+      setServerError(errorMessage);
+    },
+  });
 
   const resetPasswordMutation = useMutation({
     mutationFn: async ({ password }: { password: string }) => {
@@ -308,14 +327,12 @@ const handleVerifyOtp = () => {
                 ))}
               </div>
               <button
-                // disabled={verifyOtpMutation.isPending}
-                // onClick={() => verifyOtpMutation.mutate()}
+                disabled={verifyOtpMutation.isPending}
+                onClick={() => verifyOtpMutation.mutate()}
                 type="button"
-                onClick={handleVerifyOtp}
                 className="w-full mt-4 text-lg cursor-pointer bg-blue-500 text-white py-2 rounded-lg"
               >
-                {/* {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify OTP'} */}
-                Verify OTP
+               {verifyOtpMutation.isPending ? 'Verifying...' : 'Verify Otp'}
               </button>
               {canResend ? (
                 <button
