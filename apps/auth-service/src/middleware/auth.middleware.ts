@@ -125,6 +125,19 @@ const trackOtpRequests = async (
 };
 
 
+const validateVerifyForgotPasswordOTPBody = (
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    return next(new ValidationError('Missing required fields for OTP verification'));
+  }
+  next();
+}
+
+
 export default {
   validateRegistration,
   validateVerifyBody,
@@ -133,4 +146,5 @@ export default {
   trackOtpRequests,
   validateLoginBody,
   validateResetPasswordBody,
+  validateVerifyForgotPasswordOTPBody,
 };
