@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authController } from '../../controllers';
 import { authMiddleware } from '../../middleware';
+import isAuthenticated from '@packages/middleware/isAuthenticated';
 
 const authRouter: Router = Router();
 
@@ -41,4 +42,11 @@ authRouter.post(
   authMiddleware.validateVerifyForgotPasswordOTPBody,
   authController.verifyUserForgotPasswordOTP,
 );
+
+//refresh token route
+authRouter.post('/refresh-token', authController.refreshAccessToken);
 export default authRouter;
+
+
+//protected routes
+authRouter.get('/current-user', isAuthenticated, authController.currentUser);

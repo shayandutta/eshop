@@ -4,7 +4,8 @@
     "outDir": "dist",
     "types": ["node", "express"],
     "rootDir": "../../",
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+    "strict": true
   },
   "include": ["src/**/*.ts",
     "../../packages/**/*.ts", //include all ts files in the packages directory

@@ -7,6 +7,12 @@ const userRepository = {
     });
   },
 
+  findById: (id:string) => {
+    return prisma.users.findUnique({
+      where: { id },
+    });
+  },
+
   create: (data: { name: string; email: string; password: string }) => {
     return prisma.users.create({
       data,

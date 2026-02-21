@@ -1,7 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services';
 import { setCookie } from '../utils/cookies/setCookie';
-
 const userRegistration = async (
   req: Request,
   res: Response,
@@ -111,6 +110,37 @@ const resetUserPassword = async (
   }
 };
 
+const refreshAccessToken = async(
+  req:Request, 
+  res:Response, 
+  next: NextFunction
+) => {
+  try{
+    const response = await authService.refreshAccessToken(req.cookies.refresh_token);
+    setCookie(res, 'accessToken', response.accessToken);
+    res.status(200).json({
+      success: true,
+      message: "Access token refreshed successfully",
+    })
+  }catch(error){
+    next(error);
+  }
+}
+
+
+const currentUser = async(req: Request, res: Response, next: NextFunction) => {
+  try{
+    const user = req.user;
+    res.status(200).json({
+      success: true,
+      message: "Current user fetched successfully",
+      user,
+    })
+  }catch(error){
+    next(error);
+  }
+}
+
 export default {
   userRegistration,
   verifyUser,
@@ -118,4 +148,6 @@ export default {
   userForgotPassword,
   resetUserPassword,
   verifyUserForgotPasswordOTP,
+  refreshAccessToken,
+  currentUser
 };

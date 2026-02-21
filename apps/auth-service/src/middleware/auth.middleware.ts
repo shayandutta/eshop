@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { ValidationError } from '@packages/error-handler';
 import { redis } from '@packages/libs/redis';
+import jwt from 'jsonwebtoken';
+import prisma from '@packages/libs/prisma';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -136,6 +138,8 @@ const validateVerifyForgotPasswordOTPBody = (
   }
   next();
 }
+
+
 
 
 export default {

@@ -2,7 +2,7 @@ import { AuthenticationError, ValidationError } from '@packages/error-handler';
 import bcrypt from 'bcryptjs';
 import { sendOtp, verifyOtp, checkOtp } from '../utils/auth.helper';
 import { userRepository } from '../repositories';
-import jwt from 'jsonwebtoken';
+import jwt, { JsonWebTokenError } from 'jsonwebtoken';
 
 const authinitiateRegistrationService =
   /** Initiate registration: check user doesn't exist, send OTP. Middleware handles validation & OTP restrictions. */
@@ -123,6 +123,35 @@ const verifyForgotPasswordOTP = async (email: string, otp: string) => {
   };
 };
 
+const refreshAccessToken = async (refreshToken : string) => {
+  if(!refreshToken){
+    throw new ValidationError('Refresh token is required');
+  }
+  const decoded = jwt.verify (refreshToken, process.env.REFRESH_TOKEN_SECRET as string) as {
+    id: string;
+    role: string;
+  };
+  if(!decoded || !decoded.id || decoded.role !== 'user'){
+    throw new JsonWebTokenError('Forbidden! Invalid refresh token');
+  }
+  const account = await userRepository.findById(decoded.id);
+  if(!account){
+    throw new AuthenticationError('User/Seller not found');
+  }
+
+  const newAccessToken = jwt.sign(
+    { id: account.id, role: decoded.role },
+    process.env.ACCESS_TOKEN_SECRET as string,
+    { expiresIn: '7d' },
+  );
+
+  return {
+    id : decoded.id,
+    role: decoded.role,
+    accessToken: newAccessToken,
+  };
+}
+
 export default {
   authinitiateRegistrationService,
   completeRegistration,
@@ -130,4 +159,5 @@ export default {
   forgotPassword,
   resetUserPassword,
   verifyForgotPasswordOTP,
+  refreshAccessToken
 };
