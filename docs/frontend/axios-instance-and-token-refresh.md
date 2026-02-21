@@ -278,5 +278,3 @@ You get the 200 as if the first request had succeeded.
 
 Use `axiosInstance` for all authenticated API calls so this behavior is consistent across the app.
 
-
-test1
